@@ -75,13 +75,15 @@ def generate_digest(search_results):
 
 def main():
     results = search_latest_news()
-    if not results:
-        print("未找到任何相關資料。")
-        return
-
-    digest_content = generate_digest(results)
     
     filename = f"food_ai_digest_{datetime.date.today().strftime('%Y%m%d')}.md"
+
+    if not results:
+        print("未找到任何相關資料。將產生空報告以便檢查。")
+        digest_content = f"# 食品加工 AI 新技術日報 ({datetime.date.today().strftime('%Y-%m-%d')})\n\n## ⚠️ 搜尋失敗或無資料\n\n本日執行搜尋時未找到相關新聞，或者是搜尋引擎暫時封鎖了來自 GitHub Actions 的請求。\n\n建議：\n1. 請稍後手動重新執行 (Re-run jobs)。\n2. 若持續發生，可能是 IP 被 Google/DuckDuckGo 封鎖。"
+    else:
+        digest_content = generate_digest(results)
+    
     with open(filename, "w", encoding="utf-8") as f:
         f.write(digest_content)
         
