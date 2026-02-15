@@ -1,2 +1,2 @@
-duckduckgo_search
+duckduckgo_search>=5.0
 google-generativeai
