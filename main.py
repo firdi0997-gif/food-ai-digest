@@ -113,9 +113,15 @@ def generate_digest(search_results):
 
 def main():
     # 設定 API Key
-    API_KEY = os.environ.get("GOOGLE_API_KEY")
-    if not API_KEY:
-        print("錯誤：找不到 GOOGLE_API_KEY 環境變數。請確認 GitHub Secrets 或本機環境變數已設定。")
+    # 如果您在本地執行，請將下方的 "您的_GOOGLE_API_KEY" 替換為真實的金鑰
+    # 注意：請勿將含有真實金鑰的檔案上傳到公開的 GitHub
+    GOOGLE_API_KEY_LOCAL = "您的_GOOGLE_API_KEY" 
+    
+    API_KEY = os.environ.get("GOOGLE_API_KEY") or GOOGLE_API_KEY_LOCAL
+    
+    if not API_KEY or API_KEY == "您的_GOOGLE_API_KEY":
+        print("錯誤：找不到 GOOGLE_API_KEY。")
+        print("請設定環境變數，或是直接修改 main.py 中的 GOOGLE_API_KEY_LOCAL 變數。")
         exit(1)
     
     genai.configure(api_key=API_KEY)
