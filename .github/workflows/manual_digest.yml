@@ -1,7 +1,9 @@
-name: Manual Food AI Digest (手動食品 AI 摘要)
+name: Food AI Digest (Auto + Manual)
 
 on:
-  workflow_dispatch: # 只允許手動觸發
+  workflow_dispatch: # 允許手動觸發
+  schedule:
+    - cron: '0 0 * * 1-5' # 每週一至週五 00:00 UTC (台灣時間 08:00) 自動執行
 
 jobs:
   build-and-run:
