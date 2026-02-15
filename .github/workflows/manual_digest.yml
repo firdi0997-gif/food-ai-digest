@@ -6,6 +6,8 @@ on:
 jobs:
   build-and-run:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
     - name: Checkout code (檢出程式碼)
@@ -26,9 +28,25 @@ jobs:
         GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
       run: python main.py
 
-    - name: Upload Digest Artifact (上傳摘要報告)
-      uses: actions/upload-artifact@v4
-      with:
-        name: daily-digest
-        path: food_ai_digest_*.md
-        retention-days: 7
+    - name: Commit and Push Report (提交並推送報告)
+      run: |
+        # 設定 Git 使用者
+        git config --global user.name "GitHub Action"
+        git config --global user.email "action@github.com"
+        
+        # 確保目標資料夾存在
+        mkdir -p docs/reports
+        
+        # 移動生成的 .md 檔案
+        mv food_ai_digest_*.md docs/reports/
+        
+        # 加入並提交變更
+        git add docs/reports/*.md
+        
+        # 檢查是否有變更需要提交
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Auto-update: Add new Food AI digest report"
+          git push
+        fi
