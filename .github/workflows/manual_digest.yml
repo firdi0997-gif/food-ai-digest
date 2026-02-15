@@ -40,8 +40,11 @@ jobs:
         # 移動生成的 .md 檔案
         mv food_ai_digest_*.md docs/reports/
         
+        # 更新網站索引 (產生 reports.json)
+        python update_dashboard.py
+        
         # 加入並提交變更
-        git add docs/reports/*.md
+        git add docs/reports/*.md docs/reports.json
         
         # 檢查是否有變更需要提交
         if git diff --staged --quiet; then
