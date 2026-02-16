@@ -43,8 +43,8 @@
 
         async function fetchReportList() {
             try {
-                // 讀取靜態索引檔
-                const response = await fetch(REPORTS_INDEX);
+                // 讀取靜態索引檔 (加入時間戳記以避免快取)
+                const response = await fetch(`${REPORTS_INDEX}?t=${new Date().getTime()}`);
                 if (!response.ok) throw new Error('無法獲取報告列表');
 
                 const reports = await response.json();
@@ -86,7 +86,8 @@
             document.getElementById('report-title').textContent = '載入中...';
 
             try {
-                const response = await fetch(url);
+                // 加入時間戳記以避免快取
+                const response = await fetch(`${url}?t=${new Date().getTime()}`);
                 const text = await response.text();
 
                 document.getElementById('report-content').innerHTML = marked.parse(text);
