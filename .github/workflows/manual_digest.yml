@@ -3,7 +3,7 @@ name: Food AI Digest (Auto + Manual)
 on:
   workflow_dispatch: # 允許手動觸發
   schedule:
-    - cron: '0 0 * * 1-5' # 每週一至週五 00:00 UTC (台灣時間 08:00) 自動執行
+    - cron: '30 23 * * 0-4' # 每週日至週四 23:30 UTC (台灣時間週一至週五 07:30) 自動執行，避開整點尖峰時段
 
 jobs:
   build-and-run:
