@@ -1,0 +1,20 @@
+# 設定檔與環境變數
+.env
+
+# Python 產生的快取檔
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# 虛擬環境
+venv/
+env/
+.venv/
+
+# 作業系統產生的檔案
+.DS_Store
+Thumbs.db
+
+# 錯誤紀錄檔可以被忽略，或是您希望保留也可以，這裡先忽略
+food_ai_digest_ERROR_*.md

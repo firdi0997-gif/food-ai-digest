@@ -2,6 +2,10 @@ import os
 import datetime
 from duckduckgo_search import DDGS
 import google.generativeai as genai
+from dotenv import load_dotenv
+
+# 載入 .env 檔案
+load_dotenv()
 
 # API config moved to main execution block
 
