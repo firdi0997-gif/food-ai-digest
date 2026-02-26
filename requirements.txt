@@ -1,2 +1,4 @@
 duckduckgo_search>=5.0
 google-generativeai
+python-dotenv
+
