@@ -1,6 +1,6 @@
 import os
 import datetime
-from ddgs import DDGS  # 已更新為新版 DDGS
++from duckduckgo_search import DDGS  # 已更新為新版 DDGS
 from google import genai  # 已更新為新版 google-genai
 from dotenv import load_dotenv
 import time
@@ -162,3 +162,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
