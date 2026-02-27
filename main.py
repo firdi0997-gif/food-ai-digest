@@ -144,7 +144,7 @@ def main():
                 print(f"生成摘要時發生錯誤: {e}")
                 digest_content = f"# 食品加工 AI 新技術日報 ({datetime.date.today().strftime('%Y-%m-%d')})\n\n## ⚠️ 生成摘要時發生錯誤\n\n雖然找到了搜尋結果，但在呼叫 AI 生成摘要時發生錯誤。\n\n錯誤訊息：`{str(e)}`\n\n### 搜尋到的資料：\n"
                 for i, r in enumerate(results, 1):
-                    digest_content += f"{i}. [{r.get('title', 'No Title')}](<{r.get('href', '#'>)})\n"
+                    digest_content += f"{i}. [{r.get('title', 'No Title')}](<{r.get('href', '#')})\n"
 
         
         with open(filename, "w", encoding="utf-8") as f:
@@ -163,6 +163,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
