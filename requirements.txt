@@ -1,4 +1,5 @@
-duckduckgo-search
+ duckduckgo-search
  google-genai
  python-dotenv
+
 
