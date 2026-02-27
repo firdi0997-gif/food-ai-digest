@@ -1,3 +1,4 @@
-ddgs
-google-genai
-python-dotenv
+-ddgs
++duckduckgo-search
+ google-genai
+ python-dotenv
