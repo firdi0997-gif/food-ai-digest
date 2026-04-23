@@ -1,6 +1,6 @@
 import os
 import datetime
-from duckduckgo_search import DDGS
+from tavily import TavilyClient
 import google.generativeai as genai
 from dotenv import load_dotenv
 
@@ -12,8 +12,8 @@ load_dotenv()
 import time
 import random
 
-def search_latest_news():
-    print("正在搜尋最新食品加工 AI 技術...")
+def search_latest_news(tavily_client):
+    print("正在使用 Tavily 搜尋最新食品加工 AI 技術...")
     
     # 擴充關鍵字列表，涵蓋不同面向
     keywords = [
@@ -31,47 +31,35 @@ def search_latest_news():
     
     errors = []
     
-    with DDGS() as ddgs:
-        for keyword in keywords:
-            print(f"搜尋關鍵字: {keyword}")
-            retries = 3
-            for attempt in range(retries):
-                try:
-                    # 隨機延遲，避免被封鎖
-                    time.sleep(random.uniform(2, 5))
-                    
-                    # 優先嘗試新聞搜尋 (News Search) - 放寬時間限制，移除 timelimit='m' 以獲取更多結果
-                    search_res = list(ddgs.news(keyword, region='wt-wt', safesearch='off', max_results=5))
-                    
-                    # 如果新聞搜尋沒結果，嘗試一般網頁搜尋 (Text Search) - 設定為過去一年 ('y')
-                    if not search_res:
-                        print(f"  - 新聞搜尋無結果，嘗試一般網頁搜尋 (過去一年)...")
-                        time.sleep(random.uniform(1, 3))
-                        search_res = list(ddgs.text(keyword, region='wt-wt', safesearch='off', timelimit='y', max_results=5))
-                    
-                    if search_res:
-                        new_count = 0
-                        for res in search_res:
-                            # 處理不同搜尋方法回傳的索引鍵差異
-                            href = res.get('href') or res.get('url')
-                            if href and href not in seen_urls:
-                                seen_urls.add(href)
-                                results.append(res)
-                                new_count += 1
-                        print(f"  - 找到 {new_count} 筆新資料")
-                        break # 成功找到資料，跳出重試迴圈
-                    else:
-                        print(f"  - 未找到資料")
-                        break # 沒報錯但沒資料，也跳出重試
-                        
-                except Exception as e:
-                    error_msg = f"搜尋 '{keyword}' 失敗 (嘗試 {attempt+1}/{retries}): {str(e)}"
-                    print(f"  - {error_msg}")
-                    errors.append(error_msg)
-                    if attempt < retries - 1:
-                        time.sleep(5) # 失敗後等待較長時間
-                    else:
-                        print(f"  - 放棄搜尋關鍵字: {keyword}")
+    for keyword in keywords:
+        print(f"搜尋關鍵字: {keyword}")
+        try:
+            # 使用 Tavily 進行新聞搜尋
+            search_res = tavily_client.search(
+                query=keyword, 
+                search_depth="advanced", 
+                topic="news", 
+                max_results=3, # 避免資料過多，7 個關鍵字每個取 3 筆，最多 21 筆
+                days=30 # 抓取最近 30 天的新聞
+            )
+            
+            # Tavily 回傳的結構是 dict，其中有 'results' 列表
+            if search_res and 'results' in search_res:
+                new_count = 0
+                for res in search_res['results']:
+                    href = res.get('url')
+                    if href and href not in seen_urls:
+                        seen_urls.add(href)
+                        results.append(res)
+                        new_count += 1
+                print(f"  - 找到 {new_count} 筆新資料")
+            else:
+                print(f"  - 未找到資料")
+                
+        except Exception as e:
+            error_msg = f"搜尋 '{keyword}' 失敗: {str(e)}"
+            print(f"  - {error_msg}")
+            errors.append(error_msg)
 
     print(f"搜尋完成。共找到 {len(results)} 筆不重複資料。")
     return results, errors
@@ -85,12 +73,12 @@ def generate_digest(search_results):
     # 準備搜尋資料內容給 AI
     context_text = ""
     for idx, item in enumerate(search_results, 1):
-        # 兼容 news 和 text 搜尋的結果欄位
+        # 兼容 Tavily 的結果欄位
         title = item.get('title', 'No Title')
-        url = item.get('href', item.get('url', 'No URL'))
-        snippet = item.get('body', item.get('snippet', 'No content'))
-        source = item.get('source', 'Unknown Source')
-        date = item.get('date', '')
+        url = item.get('url', 'No URL')
+        snippet = item.get('content', 'No content')
+        source = item.get('source', '') # Tavily optional
+        date = item.get('published_date', '') # Tavily default date field
         
         context_text += f"{idx}. Title: {title}\n   Source: {source} ({date})\n   URL: {url}\n   Snippet: {snippet}\n\n"
 
@@ -118,21 +106,29 @@ def generate_digest(search_results):
 def main():
     try:
         # 設定 API Key
-        # 如果您在本地執行，請將下方的 "您的_GOOGLE_API_KEY" 替換為真實的金鑰
+        # 如果您在本地執行，請將下方的 "您的_GOOGLE_API_KEY" 和 "您的_TAVILY_API_KEY" 替換為真實的金鑰
         # 注意：請勿將含有真實金鑰的檔案上傳到公開的 GitHub
         GOOGLE_API_KEY_LOCAL = "您的_GOOGLE_API_KEY" 
+        TAVILY_API_KEY_LOCAL = "您的_TAVILY_API_KEY"
         
         API_KEY = os.environ.get("GOOGLE_API_KEY") or GOOGLE_API_KEY_LOCAL
+        TAVILY_KEY = os.environ.get("TAVILY_API_KEY") or TAVILY_API_KEY_LOCAL
         
         if not API_KEY or API_KEY == "您的_GOOGLE_API_KEY":
             print("錯誤：找不到 GOOGLE_API_KEY。")
             print("請設定環境變數，或是直接修改 main.py 中的 GOOGLE_API_KEY_LOCAL 變數。")
             # 這裡不直接 exit(1)，而是拋出異常以便被下方捕捉並生成報告
             raise ValueError("未設定 GOOGLE_API_KEY 環境變數")
+            
+        if not TAVILY_KEY or TAVILY_KEY == "您的_TAVILY_API_KEY":
+            print("錯誤：找不到 TAVILY_API_KEY。")
+            print("請至 https://tavily.com/ 申請免費 API Key 並設定為環境變數，或是修改 TAVILY_API_KEY_LOCAL。")
+            raise ValueError("未設定 TAVILY_API_KEY 環境變數")
         
         genai.configure(api_key=API_KEY)
+        tavily_client = TavilyClient(api_key=TAVILY_KEY)
 
-        results, errors = search_latest_news()
+        results, errors = search_latest_news(tavily_client)
         
         filename = f"food_ai_digest_{datetime.date.today().strftime('%Y%m%d')}.md"
 
@@ -147,7 +143,7 @@ def main():
                 print(f"生成摘要時發生錯誤: {e}")
                 digest_content = f"# 食品加工 AI 新技術日報 ({datetime.date.today().strftime('%Y-%m-%d')})\n\n## ⚠️ 生成摘要時發生錯誤\n\n雖然找到了搜尋結果，但在呼叫 AI 生成摘要時發生錯誤。\n\n錯誤訊息：`{str(e)}`\n\n### 搜尋到的資料：\n"
                 for i, r in enumerate(results, 1):
-                    digest_content += f"{i}. [{r.get('title', 'No Title')}]({r.get('href', '#')})\n"
+                    digest_content += f"{i}. [{r.get('title', 'No Title')}]({r.get('url', '#')})\n"
         
         with open(filename, "w", encoding="utf-8") as f:
             f.write(digest_content)

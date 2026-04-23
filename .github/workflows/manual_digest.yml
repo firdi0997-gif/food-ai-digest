@@ -28,6 +28,7 @@ jobs:
     - name: Run research script (執行搜尋腳本)
       env:
         GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
       run: python main.py
 
     - name: Commit and Push Report (提交並推送報告)
